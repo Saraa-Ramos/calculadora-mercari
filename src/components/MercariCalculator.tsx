@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useRates } from '../hooks/useRates'
 import styles from './MercariCalculator.module.css'
 
-const WA_GROUP_LINK = 'https://chat.whatsapp.com/G8QATn5mff130Vyz1aWH0J?s=sh&p=i&ilr=4&amv=2'
 
 // ─── Constantes internas (no visibles para el cliente) ────────────────────────
 const NEOKYO_FEE_JPY   = 350   // ¥
@@ -55,14 +54,6 @@ interface MercariItem {
   title: string | null
 }
 
-type WaType = 'individual'
-
-interface WaPayment {
-  name: string
-  icon: string
-  amount: number
-  currency: string
-}
 
 export default function MercariCalculator() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
@@ -72,22 +63,16 @@ export default function MercariCalculator() {
   const [mercariLoading, setMercariLoading] = useState(false)
   const [mercariItem, setMercariItem] = useState<MercariItem | null>(null)
   const [mercariError, setMercariError] = useState<string | null>(null)
-  const [showWaOptions, setShowWaOptions] = useState(false)
-  const [waCompleto, setWaCompleto] = useState(false)
   const [waMessage, setWaMessage] = useState<string | null>(null)
-  const [waCopied, setWaCopied] = useState(false)
   const { rates, fetchRates } = useRates()
 
   function showWaMessage(rawText: string) {
     setWaMessage(rawText)
-    setWaCopied(false)
   }
 
-  function copyAndOpen() {
+  function openWhatsApp() {
     if (!waMessage) return
-    void navigator.clipboard.writeText(waMessage).catch(() => {})
-    setWaCopied(true)
-    window.open(WA_GROUP_LINK, '_blank')
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(waMessage)}`, '_blank')
   }
 
   useEffect(() => {
@@ -220,8 +205,6 @@ export default function MercariCalculator() {
     const totalBs      = (totalUsd * binanceRate) / bcvRate
 
     setResults({ totalUsd, totalBs, productUsd, neokyo350Usd, fixed40Usd, paypalFeeUsd })
-    setShowWaOptions(false)
-    setWaCompleto(false)
     setWaMessage(null)
     setError(null)
   }
@@ -233,36 +216,19 @@ export default function MercariCalculator() {
     setMercariItem(null)
     setMercariError(null)
     setMercariUrl('')
-    setShowWaOptions(false)
     setWaMessage(null)
   }
 
-  function handleSendWhatsApp(_type: WaType) {
+  function handleSendWhatsApp() {
     if (!results) return
     const lines: string[] = [
-      '🛒 Cotización Mercari Japón',
+      '🛒 *Cotización Mercari Japón*',
       ...(mercariUrl ? [`🔗 ${mercariUrl}`] : []),
       '',
-      `💵 *Total: $${fmt(results.totalUsd)} USD*`,
+      `💵 *$${fmt(results.totalUsd)} USD* — Zinli, PayPal o Binance`,
+      `🏦 *${fmtBs(results.totalBs)} Bs* — Pago en efectivo (tasa BCV)`,
     ]
     showWaMessage(lines.join('\n'))
-    setShowWaOptions(false)
-  }
-
-  function handleSendCompleto(payment: WaPayment) {
-    if (!results) return
-    const precio = payment.currency === '$'
-      ? `$${fmtBs(payment.amount)}`
-      : `${payment.currency} ${fmt(payment.amount)}`
-    const lines: string[] = [
-      '🛒 Cotización Mercari Japón',
-      ...(mercariUrl ? [`🔗 ${mercariUrl}`] : []),
-      '',
-      `${payment.icon} *${payment.name}: ${precio}*`,
-    ]
-    showWaMessage(lines.join('\n'))
-    setShowWaOptions(false)
-    setWaCompleto(false)
   }
 
   const timeString = rates.lastUpdated?.toLocaleTimeString('es-VE', {
@@ -487,50 +453,19 @@ export default function MercariCalculator() {
             {/* WhatsApp */}
             <div className={styles.waSection}>
               {!waMessage ? (
-                <>
-                  {!showWaOptions ? (
-                    <button className={styles.btnWhatsApp} onClick={() => setShowWaOptions(true)}>
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.529 5.855L.057 23.09a.75.75 0 0 0 .906.973l5.456-1.43A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.718 9.718 0 0 1-4.953-1.352l-.355-.211-3.68.965.982-3.585-.232-.37A9.718 9.718 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
-                      Cotizar por WhatsApp
-                    </button>
-                  ) : !waCompleto ? (
-                    <div className={styles.waOptions}>
-                      <p className={styles.waQuestion}>¿Cómo deseas enviar la cotización?</p>
-                      <div className={styles.waButtons}>
-                        <button className={styles.waOptionBtn} onClick={() => handleSendWhatsApp('individual')}>
-                          Individual
-                        </button>
-                        <button className={styles.waOptionBtn} onClick={() => setWaCompleto(true)}>
-                          Completo
-                        </button>
-                      </div>
-                      <button className={styles.waCancelBtn} onClick={() => setShowWaOptions(false)}>Cancelar</button>
-                    </div>
-                  ) : (
-                    <div className={styles.waOptions}>
-                      <p className={styles.waQuestion}>¿Método de pago?</p>
-                      <div className={styles.waButtons}>
-                        <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'Zinli',       icon: '💳', amount: results!.totalUsd, currency: 'USD'  })}>💳 Zinli</button>
-                        <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'PayPal',      icon: '🅿', amount: results!.totalUsd, currency: 'USD'  })}>🅿 PayPal</button>
-                        <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'Binance Pay', icon: '₿', amount: results!.totalUsd, currency: 'USDT' })}>₿ Binance</button>
-                        <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'BCV',  icon: '💵', amount: results!.totalBs,  currency: '$'    })}>💵 BCV</button>
-                      </div>
-                      <button className={styles.waCancelBtn} onClick={() => setWaCompleto(false)}>← Volver</button>
-                    </div>
-                  )}
-                </>
+                <button className={styles.btnWhatsApp} onClick={handleSendWhatsApp}>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.529 5.855L.057 23.09a.75.75 0 0 0 .906.973l5.456-1.43A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.718 9.718 0 0 1-4.953-1.352l-.355-.211-3.68.965.982-3.585-.232-.37A9.718 9.718 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
+                  Cotizar por WhatsApp
+                </button>
               ) : (
                 <div className={styles.waSharePanel}>
                   <p className={styles.waShareLabel}>Mensaje listo para enviar</p>
                   <pre className={styles.waShareText}>{waMessage}</pre>
-                  {waCopied ? (
-                    <div className={styles.waToast}>✓ Copiado — ahora pégalo en el grupo</div>
-                  ) : null}
-                  <button className={styles.btnWhatsApp} onClick={copyAndOpen}>
+                  <button className={styles.btnWhatsApp} onClick={openWhatsApp}>
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.529 5.855L.057 23.09a.75.75 0 0 0 .906.973l5.456-1.43A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.718 9.718 0 0 1-4.953-1.352l-.355-.211-3.68.965.982-3.585-.232-.37A9.718 9.718 0 0 1 2.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
-                    Copiar y abrir grupo
+                    Enviar por WhatsApp
                   </button>
-                  <button className={styles.waCancelBtn} onClick={() => { setWaMessage(null); setShowWaOptions(false); setWaCompleto(false) }}>← Volver</button>
+                  <button className={styles.waCancelBtn} onClick={() => setWaMessage(null)}>← Volver</button>
                 </div>
               )}
             </div>
