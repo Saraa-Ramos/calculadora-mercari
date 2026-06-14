@@ -120,10 +120,11 @@ export default function MercariCalculator() {
       setMercariItem({ priceJPY: data.priceJPY, title: data.title })
       setForm((prev) => {
         const rate = parseFloat(prev.jpyToUsd)
+        // Apply 5% operational margin to cover exchange rate spread: PrecioUSD = (JPY / tasa) × 1.05
         return {
           ...prev,
           productPrice: String(data.priceJPY),
-          productPriceUsd: rate > 0 ? (data.priceJPY * rate).toFixed(2) : '',
+          productPriceUsd: rate > 0 ? (data.priceJPY * rate * 1.05).toFixed(2) : '',
         }
       })
       setResults(null)
