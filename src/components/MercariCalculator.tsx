@@ -45,6 +45,7 @@ function fmt(value: number): string {
 function fmtBs(value: number): string {
   return value.toLocaleString('es-VE', {
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   })
 }
 
@@ -463,8 +464,6 @@ export default function MercariCalculator() {
                 <div>
                   <p className={styles.bsLabel}>BCV</p>
                   <p className={styles.bsValue}>
-                    <span className={styles.bsUsd}>$ {fmt(results.totalUsd)}</span>
-                    <span className={styles.bsEq}>=</span>
                     $ {fmtBs(results.totalBs)}
                   </p>
                 </div>
