@@ -435,34 +435,6 @@ export default function MercariCalculator() {
         {/* ── Resultados ── */}
         {results && (
           <div className={styles.results}>
-            <h2 className={styles.resultsTitle}>Resumen de cotización</h2>
-
-            {/* Desglose */}
-            <div className={styles.breakdownCard}>
-              <BreakdownRow
-                label="Precio del producto"
-                jpy={parseFloat(form.productPrice)}
-                usd={results.productUsd}
-              />
-              <BreakdownRow
-                label="Fee Neokyo"
-                jpy={NEOKYO_FEE_JPY}
-                usd={results.neokyo350Usd}
-              />
-              <BreakdownRow
-                label="Cargo fijo"
-                jpy={FIXED_CHARGE_JPY}
-                usd={results.fixed40Usd}
-              />
-              <BreakdownRow
-                label="Comisión PayPal"
-                usd={results.paypalFeeUsd}
-              />
-              <div className={styles.breakdownTotal}>
-                <span className={styles.breakdownTotalLabel}>Total</span>
-                <span className={styles.breakdownTotalValue}>$ {fmt(results.totalUsd)}</span>
-              </div>
-            </div>
 
             {/* Total Final en $ */}
             <div className={styles.totalCard}>
@@ -540,19 +512,7 @@ export default function MercariCalculator() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function BreakdownRow({ label, jpy, usd }: { label: string; jpy?: number; usd: number }) {
-  return (
-    <div className={styles.bdRow}>
-      <span className={styles.bdLabel}>{label}</span>
-      <span className={styles.bdAmounts}>
-        {jpy !== undefined && (
-          <span className={styles.bdJpy}>¥{jpy.toLocaleString('ja-JP')}</span>
-        )}
-        <span className={styles.bdUsd}>$ {fmt(usd)}</span>
-      </span>
-    </div>
-  )
-}
+
 
 function RatePill({ dot, label, value }: { dot?: string; label: string; value: string }) {
   return (
