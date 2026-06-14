@@ -320,7 +320,7 @@ export default function MercariCalculator() {
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>
               <span className={styles.sectionIcon}>🔗</span>
-              Link del producto (opcional)
+              Link del producto
             </h2>
             <div className={styles.mercariSearch}>
               <input
@@ -342,6 +342,7 @@ export default function MercariCalculator() {
                 ) : 'Buscar'}
               </button>
             </div>
+            <p className={styles.mercariHint}>Buscar el precio desde el link es opcional — también puedes ingresarlo manualmente abajo.</p>
             {mercariError && <p className={styles.mercariError}>⚠ {mercariError}</p>}
             {mercariItem && (
               <div className={styles.mercariResult}>
