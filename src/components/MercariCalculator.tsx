@@ -225,8 +225,11 @@ export default function MercariCalculator() {
       '🛒 *Cotización Mercari Japón*',
       ...(mercariUrl ? [`🔗 ${mercariUrl}`] : []),
       '',
-      `💵 *$${fmt(results.totalUsd)} USD* — Zinli, PayPal o Binance`,
-      `🏦 *${fmtBs(results.totalBs)} Bs* — Pago en efectivo (tasa BCV)`,
+      '*Total Final en $*',
+      `$ ${fmt(results.totalUsd)}`,
+      '',
+      '*BCV*',
+      `$ ${fmtBs(results.totalBs)}`,
     ]
     showWaMessage(lines.join('\n'))
   }
