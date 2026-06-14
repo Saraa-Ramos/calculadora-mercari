@@ -491,7 +491,7 @@ export default function MercariCalculator() {
                     <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'Zinli',       icon: '💳', amount: results!.totalUsd, currency: 'USD'  })}>💳 Zinli</button>
                     <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'PayPal',      icon: '🅿', amount: results!.totalUsd, currency: 'USD'  })}>🅿 PayPal</button>
                     <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'Binance Pay', icon: '₿', amount: results!.totalUsd, currency: 'USDT' })}>₿ Binance</button>
-                    <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'Total en $',  icon: '💵', amount: results!.totalBs,  currency: '$'    })}>💵 Total $</button>
+                    <button className={styles.waOptionBtn} onClick={() => handleSendCompleto({ name: 'BCV',  icon: '💵', amount: results!.totalBs,  currency: '$'    })}>💵 BCV</button>
                   </div>
                   <button className={styles.waCancelBtn} onClick={() => setWaCompleto(false)}>← Volver</button>
                 </div>
@@ -503,7 +503,7 @@ export default function MercariCalculator() {
               <div className={styles.bsCardHeader}>
                 <span className={styles.bsIcon}>$</span>
                 <div>
-                  <p className={styles.bsLabel}>Total en dólares</p>
+                  <p className={styles.bsLabel}>BCV</p>
                   <p className={styles.bsValue}>
                     <span className={styles.bsUsd}>$ {fmt(results.totalUsd)}</span>
                     <span className={styles.bsEq}>=</span>
