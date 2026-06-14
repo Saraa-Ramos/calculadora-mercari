@@ -227,7 +227,7 @@ export default function MercariCalculator() {
   function handleSendWhatsApp() {
     if (!results) return
     const lines: string[] = [
-      '🛒 *Cotización Mercari Japón*',
+      '🛒 *Cotización Mercari Japón* — Individual',
       ...(mercariUrl ? [`🔗 ${mercariUrl}`] : []),
       '',
       '*Total Final en $*',
@@ -246,7 +246,7 @@ export default function MercariCalculator() {
       ? `Bs ${fmtBs(payment.amount)}`
       : `$ ${fmt(payment.amount)}`
     const lines: string[] = [
-      '🛒 *Cotización Mercari Japón*',
+      '🛒 *Cotización Mercari Japón* — Completo',
       ...(mercariUrl ? [`🔗 ${mercariUrl}`] : []),
       '',
       `${payment.icon} *${payment.name}*`,
