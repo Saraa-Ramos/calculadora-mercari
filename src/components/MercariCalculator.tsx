@@ -364,21 +364,21 @@ export default function MercariCalculator() {
             </h2>
             <div className={styles.priceRow}>
               <InputField
-                label="En yenes (JPY)"
-                name="productPrice"
-                value={form.productPrice}
-                onChange={handlePriceJpyChange}
-                prefix="¥"
-                placeholder="0"
-              />
-              <span className={styles.priceEquals}>=</span>
-              <InputField
                 label="En dólares (USD)"
                 name="productPriceUsd"
                 value={form.productPriceUsd}
                 onChange={handlePriceUsdChange}
                 prefix="$"
                 placeholder="0.00"
+              />
+              <span className={styles.priceEquals}>=</span>
+              <InputField
+                label="En yenes (JPY)"
+                name="productPrice"
+                value={form.productPrice}
+                onChange={handlePriceJpyChange}
+                prefix="¥"
+                placeholder="0"
               />
             </div>
           </section>
