@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://web-jp-assets-v2.mercdn.net/_next/static/chunks/53556-e2c17fdbc4ca1d55.js)",
+      "Bash(grep -o 'baseURL[^,}]\\\\{0,80\\\\}')",
+      "Bash(curl -s -I -A \"Mozilla/5.0\" \"https://jp.mercari.com/item/m78046813810\")",
+      "Bash(curl -s -A Mozilla/5.0 -H 'Accept: application/json' -H 'x-platform: web' https://jp.mercari.com/v2/getCurrencyConversionRate/currency?currency_code=USD)",
+      "Bash(curl -s -A 'Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 Chrome/124.0 Safari/537.36' -H 'Accept: application/json, text/plain, */*' -H 'Referer: https://jp.mercari.com/' -H 'x-platform: web' -H 'x-country-code: JP' -b 'country_code=JP; version=main' https://jp.mercari.com/v2/getCurrencyConversionRate/currency?currency_code=USD)",
+      "Bash(grep -oE 'e\\\\\\(63596\\\\\\)[^;]{0,200}')",
+      "Bash(curl -sv -A 'Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36' -H 'Accept: application/json' -H 'x-platform: web' -H 'x-country-code: JP' -H 'x-locale: ja-JP' https://jp.mercari.com/v2/getCurrencyConversionRate/currency?currency_code=USD)",
+      "Bash(curl -sv \"https://jp.mercari.com/v2/getCurrencyConversionRate/currency?currency_code=USD\")",
+      "WebFetch(domain:daarkvenoom.my.canva.site)",
+      "Bash(npx tsc *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
