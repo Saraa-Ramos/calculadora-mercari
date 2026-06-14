@@ -301,6 +301,19 @@ export default function MercariCalculator() {
         </div>
       </header>
 
+      {rates.loading && rates.lastUpdated === null && (
+        <div className={styles.loadingOverlay}>
+          <svg className={styles.spinning} viewBox="0 0 24 24" width="28" height="28" fill="none"
+            stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 2v6h-6"/>
+            <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+            <path d="M3 22v-6h6"/>
+            <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+          </svg>
+          <span>Cargando tasas...</span>
+        </div>
+      )}
+
       <main className={styles.main}>
         <form className={styles.form} onSubmit={handleCalculate}>
           {/* ── Link Mercari ── */}

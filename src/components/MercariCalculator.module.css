@@ -177,6 +177,20 @@
   font-weight: 600;
 }
 
+/* ─── Loading overlay ────────────────────────────────────────────────────── */
+.loadingOverlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 24px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  width: 100%;
+}
+
 /* ─── Main ────────────────────────────────────────────────────────────────── */
 .main {
   flex: 1;

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 
 export interface Rates {
   binance: number | null
@@ -54,6 +54,8 @@ export function useRates() {
       }))
     }
   }, [])
+
+  useEffect(() => { void fetchRates() }, [fetchRates])
 
   return { rates, fetchRates }
 }
