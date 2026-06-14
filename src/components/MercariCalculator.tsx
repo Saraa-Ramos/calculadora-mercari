@@ -5,7 +5,6 @@ import styles from './MercariCalculator.module.css'
 // ─── Constantes internas (no visibles para el cliente) ────────────────────────
 const NEOKYO_FEE_JPY   = 350   // ¥
 const FIXED_CHARGE_JPY = 40    // ¥
-const TOTAL_JPY_FEES   = NEOKYO_FEE_JPY + FIXED_CHARGE_JPY  // ¥390
 // PayPal: 5.4% + $0.30 fijo — gross-up: total = (base + 0.30) / (1 - 0.054)
 const PAYPAL_FEE_RATE  = 0.054
 const PAYPAL_FEE_FIXED = 0.30
@@ -197,10 +196,12 @@ export default function MercariCalculator() {
       return
     }
 
-    const productUsd   = productPrice * jpyToUsd
+    // Si hay valor en $ úsalo directo para evitar pérdida de precisión por redondeo JPY→USD→JPY
+    const enteredUsd   = parseFloat(form.productPriceUsd)
+    const productUsd   = enteredUsd > 0 ? enteredUsd : productPrice * jpyToUsd
     const neokyo350Usd = NEOKYO_FEE_JPY * jpyToUsd
     const fixed40Usd   = FIXED_CHARGE_JPY * jpyToUsd
-    const baseUsd      = (productPrice + TOTAL_JPY_FEES) * jpyToUsd
+    const baseUsd      = productUsd + neokyo350Usd + fixed40Usd
     // Gross-up PayPal 5.4% + $0.30: total = (base + 0.30) / (1 - 0.054)
     const totalUsd     = (baseUsd + PAYPAL_FEE_FIXED) / (1 - PAYPAL_FEE_RATE)
     const paypalFeeUsd = totalUsd - baseUsd
