@@ -65,6 +65,19 @@ async function fetchBCV(): Promise<number | null> {
 }
 
 async function fetchJPY(): Promise<number | null> {
+  // Fuente 1: ExchangeRate-API (actualiza cada hora, sin API key)
+  try {
+    const data = await fetch('https://api.exchangerate-api.com/v4/latest/JPY').then((r) => r.json())
+    const val = parseFloat(data?.rates?.USD ?? '')
+    if (!isNaN(val) && val > 0) return val
+  } catch {}
+  // Fuente 2: Frankfurter (ECB, actualiza diario a las 4pm CET)
+  try {
+    const data = await fetch('https://api.frankfurter.app/latest?from=JPY&to=USD').then((r) => r.json())
+    const val = parseFloat(data?.rates?.USD ?? '')
+    if (!isNaN(val) && val > 0) return val
+  } catch {}
+  // Fuente 3 y 4: fawaz CDN (fallback diario)
   for (const url of [
     'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/jpy.json',
     'https://latest.currency-api.pages.dev/v1/currencies/jpy.json',
@@ -75,6 +88,7 @@ async function fetchJPY(): Promise<number | null> {
       if (!isNaN(val) && val > 0) return val
     } catch {}
   }
+  // Fuente 5: open.er-api (fallback diario)
   try {
     const data = await fetch('https://open.er-api.com/v6/latest/JPY').then((r) => r.json())
     const val = parseFloat(data?.rates?.USD ?? '')
