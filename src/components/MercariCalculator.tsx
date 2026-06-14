@@ -450,10 +450,32 @@ export default function MercariCalculator() {
               </div>
             </div>
 
-            {/* Total USD */}
+            {/* Total Final en $ */}
             <div className={styles.totalCard}>
-              <span className={styles.totalLabel}>Total Final</span>
+              <span className={styles.totalLabel}>Total Final en $</span>
               <span className={styles.totalYen}>$ {fmt(results.totalUsd)}</span>
+            </div>
+
+            {/* BCV */}
+            <div className={styles.bsCard}>
+              <div className={styles.bsCardHeader}>
+                <span className={styles.bsIcon}>$</span>
+                <div>
+                  <p className={styles.bsLabel}>BCV</p>
+                  <p className={styles.bsValue}>
+                    <span className={styles.bsUsd}>$ {fmt(results.totalUsd)}</span>
+                    <span className={styles.bsEq}>=</span>
+                    $ {fmtBs(results.totalBs)}
+                  </p>
+                </div>
+              </div>
+              <div className={styles.bsFormula}>
+                <span className={styles.bsFormulaLabel}>Fórmula aplicada:</span>
+                <code className={styles.bsFormulaCode}>
+                  ($ {fmt(results.totalUsd)} × {parseFloat(form.binanceRate).toFixed(2)} Binance)
+                  {' '}÷ {parseFloat(form.bcvRate).toFixed(2)} BCV = $ {fmtBs(results.totalBs)}
+                </code>
+              </div>
             </div>
 
             {/* Métodos de pago */}
@@ -496,28 +518,6 @@ export default function MercariCalculator() {
                   <button className={styles.waCancelBtn} onClick={() => setWaCompleto(false)}>← Volver</button>
                 </div>
               )}
-            </div>
-
-            {/* Total efectivo en $ */}
-            <div className={styles.bsCard}>
-              <div className={styles.bsCardHeader}>
-                <span className={styles.bsIcon}>$</span>
-                <div>
-                  <p className={styles.bsLabel}>BCV</p>
-                  <p className={styles.bsValue}>
-                    <span className={styles.bsUsd}>$ {fmt(results.totalUsd)}</span>
-                    <span className={styles.bsEq}>=</span>
-                    $ {fmtBs(results.totalBs)}
-                  </p>
-                </div>
-              </div>
-              <div className={styles.bsFormula}>
-                <span className={styles.bsFormulaLabel}>Fórmula aplicada:</span>
-                <code className={styles.bsFormulaCode}>
-                  ($ {fmt(results.totalUsd)} × {parseFloat(form.binanceRate).toFixed(2)} Binance)
-                  {' '}÷ {parseFloat(form.bcvRate).toFixed(2)} BCV = $ {fmtBs(results.totalBs)}
-                </code>
-              </div>
             </div>
           </div>
         )}
