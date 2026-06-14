@@ -243,14 +243,8 @@ export default function MercariCalculator() {
   function handleSendWhatsApp(_type: WaType) {
     if (!results) return
     const lines: string[] = [
-      '🛒 Cotización Individual — Mercari Japón',
-      '',
-      ...(mercariUrl ? [`🔗 ${mercariUrl}`, ''] : []),
-      '*Desglose de costos:*',
-      `• Precio del producto: ¥${parseFloat(form.productPrice).toLocaleString('ja-JP')}  →  $${fmt(results.productUsd)}`,
-      `• Fee Neokyo: ¥${NEOKYO_FEE_JPY}  →  $${fmt(results.neokyo350Usd)}`,
-      `• Cargo fijo: ¥${FIXED_CHARGE_JPY}  →  $${fmt(results.fixed40Usd)}`,
-      `• Comisión PayPal: $${fmt(results.paypalFeeUsd)}`,
+      '🛒 Cotización Mercari Japón',
+      ...(mercariUrl ? [`🔗 ${mercariUrl}`] : []),
       '',
       `💵 *Total: $${fmt(results.totalUsd)} USD*`,
     ]
@@ -265,19 +259,10 @@ export default function MercariCalculator() {
       ? `$${fmtBs(payment.amount)}`
       : `${payment.currency} ${fmt(payment.amount)}`
     const lines: string[] = [
-      '🛒 Cotización Completa — Mercari Japón',
+      '🛒 Cotización Mercari Japón',
+      ...(mercariUrl ? [`🔗 ${mercariUrl}`] : []),
       '',
-      ...(mercariUrl ? [`🔗 ${mercariUrl}`, ''] : []),
-      '*Desglose de costos:*',
-      `• Precio del producto: ¥${parseFloat(form.productPrice).toLocaleString('ja-JP')}  →  $${fmt(results.productUsd)}`,
-      `• Fee Neokyo: ¥${NEOKYO_FEE_JPY}  →  $${fmt(results.neokyo350Usd)}`,
-      `• Cargo fijo: ¥${FIXED_CHARGE_JPY}  →  $${fmt(results.fixed40Usd)}`,
-      `• Comisión PayPal: $${fmt(results.paypalFeeUsd)}`,
-      '',
-      `💵 *Total: $${fmt(results.totalUsd)} USD*`,
-      '',
-      `${payment.icon} *Método de pago: ${payment.name}*`,
-      `${payment.icon} *Precio: ${precio}*`,
+      `${payment.icon} *${payment.name}: ${precio}*`,
     ]
     const text = encodeURIComponent(lines.join('\n'))
     openWhatsApp(text)
