@@ -72,29 +72,10 @@ export default function MercariCalculator() {
   const [mercariError, setMercariError] = useState<string | null>(null)
   const [showWaOptions, setShowWaOptions] = useState(false)
   const [waCompleto, setWaCompleto] = useState(false)
-  const [groupUrl, setGroupUrl] = useState(() => localStorage.getItem('wa_group_url') ?? '')
-  const [toast, setToast] = useState<string | null>(null)
   const { rates, fetchRates } = useRates()
 
-  function saveGroupUrl(url: string) {
-    setGroupUrl(url)
-    localStorage.setItem('wa_group_url', url)
-  }
-
-  function showToast(msg: string) {
-    setToast(msg)
-    setTimeout(() => setToast(null), 2500)
-  }
-
   function openWhatsApp(text: string) {
-    const rawText = decodeURIComponent(text)
-    if (groupUrl.trim()) {
-      navigator.clipboard.writeText(rawText).catch(() => {})
-      showToast('✓ Copiado — pegá en el grupo')
-      window.open(groupUrl.trim(), '_blank')
-    } else {
-      window.open(`whatsapp://send?text=${text}`, '_blank')
-    }
+    window.open(`whatsapp://send?text=${text}`, '_blank')
   }
 
   useEffect(() => {
@@ -482,24 +463,6 @@ export default function MercariCalculator() {
               <PaymentCard name="PayPal"      icon="🅿" amount={results.totalUsd} currency="USD"  color="#009cde" note="Pago digital" />
               <PaymentCard name="Binance Pay" icon="₿" amount={results.totalUsd} currency="USDT" color="#f0b90b" note="Equivalente en USDT" />
             </div>
-
-            {/* Link del grupo WhatsApp */}
-            <div className={styles.groupUrlRow}>
-              <span className={styles.groupUrlIcon}>👥</span>
-              <input
-                type="url"
-                className={styles.groupUrlInput}
-                placeholder="Link del grupo de WhatsApp (opcional)"
-                value={groupUrl}
-                onChange={(e) => saveGroupUrl(e.target.value)}
-              />
-              {groupUrl && (
-                <button className={styles.groupUrlClear} onClick={() => saveGroupUrl('')} title="Quitar">✕</button>
-              )}
-            </div>
-
-            {/* Toast */}
-            {toast && <div className={styles.toast}>{toast}</div>}
 
             {/* WhatsApp */}
             <div className={styles.waSection}>
