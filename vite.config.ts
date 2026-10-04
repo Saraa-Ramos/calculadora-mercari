@@ -116,13 +116,35 @@ async function fetchAllRates(): Promise<{ binance: number | null; bcv: number | 
   return { binance, bcv, jpy }
 }
 
-function parseMercariPrice(html: string): { priceJPY: number | null; title: string | null } {
+interface MercariParsed {
+  priceJPY: number | null
+  title: string | null
+  imageUrl: string | null
+}
+
+function parseMercariPrice(html: string): MercariParsed {
   const toInt = (s: string) => { const v = parseInt(s.replace(/[,\s¥]/g, ''), 10); return isNaN(v) || v <= 0 ? null : v }
 
-  // Helpers para og title
+  // Solo aceptamos https absoluto — el valor termina en un <img src>
+  const safeImg = (u: unknown): string | null =>
+    typeof u === 'string' && /^https:\/\/[^\s"'<>]+$/i.test(u) ? u : null
+
+  // Mercari sufija el og:title con " by メルカリ" / " by Mercari"
+  const cleanTitle = (t: unknown): string | null => {
+    if (typeof t !== 'string') return null
+    const c = t.replace(/\s*(\||-|—)?\s*by\s+(メルカリ|Mercari)\s*$/i, '').trim()
+    return c.length > 0 ? c : null
+  }
+
   const ogTitle = () =>
     (html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i)
     ?? html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:title"/i))?.[1] ?? null
+
+  const ogImage = () =>
+    safeImg(
+      (html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i)
+      ?? html.match(/<meta[^>]+content="([^"]+)"[^>]+property="og:image"/i))?.[1],
+    )
 
   // 1. Meta tags de precio (product:price:amount o og:price:amount, ambos órdenes)
   for (const re of [
@@ -133,7 +155,7 @@ function parseMercariPrice(html: string): { priceJPY: number | null; title: stri
   ]) {
     const m = html.match(re)
     const price = m ? toInt(m[1]) : null
-    if (price) return { priceJPY: price, title: ogTitle() }
+    if (price) return { priceJPY: price, title: cleanTitle(ogTitle()), imageUrl: ogImage() }
   }
 
   // 2. JSON-LD
@@ -146,13 +168,20 @@ function parseMercariPrice(html: string): { priceJPY: number | null; title: stri
         const raw    = offer?.price ?? offer?.lowPrice
         if (raw !== undefined) {
           const price = toInt(String(raw))
-          if (price) return { priceJPY: price, title: item?.name ?? null }
+          if (price) {
+            const img = Array.isArray(item?.image) ? item.image[0] : item?.image
+            return {
+              priceJPY: price,
+              title: cleanTitle(item?.name) ?? cleanTitle(ogTitle()),
+              imageUrl: safeImg(img) ?? ogImage(),
+            }
+          }
         }
       }
     } catch {}
   }
 
-  // 3. __NEXT_DATA__ — recorre rutas conocidas de Mercari Japan
+  // 3. __NEXT_DATA__ — rutas conocidas de Mercari Japan
   const nd = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)
   if (nd) {
     try {
@@ -166,7 +195,15 @@ function parseMercariPrice(html: string): { priceJPY: number | null; title: stri
       ]) {
         if (candidate?.price !== undefined) {
           const price = toInt(String(candidate.price))
-          if (price) return { priceJPY: price, title: candidate.name ?? null }
+          if (price) {
+            const photos = candidate?.photos ?? candidate?.thumbnails
+            const img = Array.isArray(photos) ? photos[0] : photos
+            return {
+              priceJPY: price,
+              title: cleanTitle(candidate?.name) ?? cleanTitle(ogTitle()),
+              imageUrl: safeImg(typeof img === 'object' ? img?.uri ?? img?.url : img) ?? ogImage(),
+            }
+          }
         }
       }
     } catch {}
@@ -181,10 +218,10 @@ function parseMercariPrice(html: string): { priceJPY: number | null; title: stri
   ]) {
     const m = html.match(re)
     const price = m ? toInt(m[1]) : null
-    if (price) return { priceJPY: price, title: null }
+    if (price) return { priceJPY: price, title: cleanTitle(ogTitle()), imageUrl: ogImage() }
   }
 
-  return { priceJPY: null, title: null }
+  return { priceJPY: null, title: null, imageUrl: null }
 }
 
 export default defineConfig({

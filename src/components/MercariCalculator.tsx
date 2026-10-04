@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useRates } from '../hooks/useRates'
+import { LS_LAST_RESULT } from '../storage'
+import { calcTotals, productUsdFromJpy, type Totals } from '../pricing'
 import styles from './MercariCalculator.module.css'
 
-
-// ─── Constantes internas (no visibles para el cliente) ────────────────────────
-const NEOKYO_FEE_JPY   = 350   // ¥
-const FIXED_CHARGE_JPY = 40    // ¥
-// PayPal: 5.4% + $0.63 fijo — gross-up: total = (base + 0.63) / (1 - 0.054)
-const PAYPAL_FEE_RATE  = 0.054
-const PAYPAL_FEE_FIXED = 0.63
 
 interface FormState {
   productPrice: string     // JPY
@@ -16,15 +11,6 @@ interface FormState {
   jpyToUsd: string
   binanceRate: string
   bcvRate: string
-}
-
-interface Results {
-  totalUsd: number
-  totalBs: number
-  productUsd: number
-  neokyo350Usd: number
-  fixed40Usd: number
-  paypalFeeUsd: number
 }
 
 const INITIAL_FORM: FormState = {
@@ -52,12 +38,13 @@ function fmtBs(value: number): string {
 interface MercariItem {
   priceJPY: number
   title: string | null
+  imageUrl: string | null
 }
 
 
 export default function MercariCalculator() {
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
-  const [results, setResults] = useState<Results | null>(null)
+  const [results, setResults] = useState<Totals | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [mercariUrl, setMercariUrl] = useState('')
   const [mercariLoading, setMercariLoading] = useState(false)
@@ -117,14 +104,14 @@ export default function MercariCalculator() {
         setMercariError('No se pudo extraer el precio. Ingrésalo manualmente.')
         return
       }
-      setMercariItem({ priceJPY: data.priceJPY, title: data.title })
+      setMercariItem({ priceJPY: data.priceJPY, title: data.title, imageUrl: data.imageUrl ?? null })
       setForm((prev) => {
         const rate = parseFloat(prev.jpyToUsd)
-        // Apply 5% operational margin to cover exchange rate spread: PrecioUSD = (JPY / tasa) × 1.05
+        // Aplica el margen operativo definido en pricing.ts
         return {
           ...prev,
           productPrice: String(data.priceJPY),
-          productPriceUsd: rate > 0 ? (data.priceJPY * rate * 1.05).toFixed(2) : '',
+          productPriceUsd: rate > 0 ? productUsdFromJpy(data.priceJPY, rate).toFixed(2) : '',
         }
       })
       setResults(null)
@@ -140,11 +127,6 @@ export default function MercariCalculator() {
       e.preventDefault()
       void handleMercariSearch()
     }
-  }
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-    setError(null)
   }
 
   function handlePriceJpyChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -197,17 +179,16 @@ export default function MercariCalculator() {
     }
 
     // Si hay valor en $ úsalo directo para evitar pérdida de precisión por redondeo JPY→USD→JPY
-    const enteredUsd   = parseFloat(form.productPriceUsd)
-    const productUsd   = enteredUsd > 0 ? enteredUsd : productPrice * jpyToUsd
-    const neokyo350Usd = NEOKYO_FEE_JPY * jpyToUsd
-    const fixed40Usd   = FIXED_CHARGE_JPY * jpyToUsd
-    const baseUsd      = productUsd + neokyo350Usd + fixed40Usd
-    // Gross-up PayPal 5.4% + $0.63: total = (base + 0.63) / (1 - 0.054)
-    const totalUsd     = (baseUsd + PAYPAL_FEE_FIXED) / (1 - PAYPAL_FEE_RATE)
-    const paypalFeeUsd = totalUsd - baseUsd
-    const totalBs      = (totalUsd * binanceRate) / bcvRate
+    const enteredUsd = parseFloat(form.productPriceUsd)
+    const productUsd = enteredUsd > 0 ? enteredUsd : productPrice * jpyToUsd
+    const totals = calcTotals(productUsd, { jpyToUsd, binanceRate, bcvRate })
+    const { totalUsd, totalBs } = totals
 
-    setResults({ totalUsd, totalBs, productUsd, neokyo350Usd, fixed40Usd, paypalFeeUsd })
+    setResults(totals)
+    // Guardado local para que el panel de claims pueda importarlo
+    try {
+      localStorage.setItem(LS_LAST_RESULT, JSON.stringify({ totalUsd, totalBs, at: new Date().toISOString() }))
+    } catch {}
     setShowWaOptions(false)
     setWaCompleto(false)
     setWaMessage(null)
@@ -270,8 +251,10 @@ export default function MercariCalculator() {
         <div className={styles.headerContent}>
           <div className={styles.headerLeft}>
             <div>
-              <h1 className={styles.title}>Cotizaciones</h1>
-              <p className={styles.subtitle}>Cotizador de importaciones desde Japón</p>
+              <h1 className={styles.title}>CALCULADORA MERCARI</h1>
+              <p className={styles.subtitle}>
+                DARK <span className={styles.brandHandle}>daark_venoom</span>
+              </p>
             </div>
           </div>
           <button
@@ -298,7 +281,7 @@ export default function MercariCalculator() {
             value={rates.binance ? `${fmt(rates.binance)} Bs/USDT` : '—'} />
           <RatePill dot="#e63946" label="BCV"
             value={rates.bcv ? `${fmt(rates.bcv)} Bs/USD` : '—'} />
-          <RatePill dot="#6366f1" label="JPY→USD"
+          <RatePill dot="#2b86dd" label="JPY→USD"
             value={rates.jpy ? rates.jpy.toFixed(6) : '—'} />
           {timeString && <RatePill label="Actualizado" value={timeString} />}
           {rates.error && (
@@ -352,7 +335,19 @@ export default function MercariCalculator() {
             {mercariError && <p className={styles.mercariError}>⚠ {mercariError}</p>}
             {mercariItem && (
               <div className={styles.mercariResult}>
-                <span className={styles.mercariResultDot}>✓</span>
+                {/* Si el CDN bloquea el hotlink, onError oculta el hueco */}
+                {mercariItem.imageUrl ? (
+                  <img
+                    className={styles.mercariThumb}
+                    src={mercariItem.imageUrl}
+                    alt={mercariItem.title ?? 'Producto de Mercari'}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                ) : (
+                  <span className={styles.mercariResultDot}>✓</span>
+                )}
                 <div className={styles.mercariResultText}>
                   {mercariItem.title && <span className={styles.mercariTitle}>{mercariItem.title}</span>}
                   <span className={styles.mercariPrice}>
@@ -401,7 +396,7 @@ export default function MercariCalculator() {
                 label="Tasa JPY → USD"
                 name="jpyToUsd"
                 value={form.jpyToUsd}
-                onChange={handleChange}
+                locked
                 placeholder="Sync tasas →"
                 hint="Para convertir los fees en ¥"
                 highlight={rates.jpy !== null}
@@ -410,7 +405,7 @@ export default function MercariCalculator() {
                 label="Tasa Binance (USDT/VES)"
                 name="binanceRate"
                 value={form.binanceRate}
-                onChange={handleChange}
+                locked
                 placeholder="Sync tasas →"
                 hint="Para el total en bolívares"
                 highlight={rates.binance !== null}
@@ -419,7 +414,7 @@ export default function MercariCalculator() {
                 label="Tasa BCV (Bs/USD)"
                 name="bcvRate"
                 value={form.bcvRate}
-                onChange={handleChange}
+                locked
                 placeholder="Sync tasas →"
                 hint="Tasa oficial BCV"
                 highlight={rates.bcv !== null}
@@ -472,7 +467,7 @@ export default function MercariCalculator() {
             {/* Métodos de pago */}
             <h3 className={styles.subTitle}>Precio por método de pago</h3>
             <div className={styles.paymentGrid}>
-              <PaymentCard name="Zinli"       icon="💳" amount={results.totalUsd} currency="USD"  color="#6366f1" note="Transferencia internacional" />
+              <PaymentCard name="Zinli"       icon="💳" amount={results.totalUsd} currency="USD"  color="#2b86dd" note="Transferencia internacional" />
               <PaymentCard name="PayPal"      icon="🅿" amount={results.totalUsd} currency="USD"  color="#009cde" note="Pago digital" />
               <PaymentCard name="Binance Pay" icon="₿" amount={results.totalUsd} currency="USDT" color="#f0b90b" note="Equivalente en USDT" />
             </div>
@@ -549,22 +544,30 @@ interface InputFieldProps {
   label: string
   name: string
   value: string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   prefix?: string
   placeholder?: string
   hint?: string
   required?: boolean
   highlight?: boolean
+  /** Solo lectura: el valor viene de "Sync tasas" y no debe tocarse a mano */
+  locked?: boolean
 }
 
-function InputField({ label, name, value, onChange, prefix, placeholder, hint, required, highlight }: InputFieldProps) {
+function InputField({ label, name, value, onChange, prefix, placeholder, hint, required, highlight, locked }: InputFieldProps) {
   return (
     <div className={styles.fieldGroup}>
       <label className={styles.label} htmlFor={name}>
         {label}
         {required && <span className={styles.required}>*</span>}
       </label>
-      <div className={`${styles.inputWrapper} ${highlight ? styles.inputHighlight : ''}`}>
+      <div
+        className={[
+          styles.inputWrapper,
+          highlight ? styles.inputHighlight : '',
+          locked ? styles.inputLocked : '',
+        ].filter(Boolean).join(' ')}
+      >
         {prefix && <span className={styles.inputPrefix}>{prefix}</span>}
         <input
           id={name}
@@ -577,6 +580,10 @@ function InputField({ label, name, value, onChange, prefix, placeholder, hint, r
           placeholder={placeholder}
           className={`${styles.input} ${prefix ? styles.inputWithPrefix : ''}`}
           required={required}
+          readOnly={locked}
+          aria-readonly={locked}
+          tabIndex={locked ? -1 : undefined}
+          onWheel={locked ? (e) => e.currentTarget.blur() : undefined}
         />
       </div>
       {hint && <span className={styles.hint}>{hint}</span>}
