@@ -424,8 +424,13 @@ export default function ClaimTemplates() {
     if (zinli !== null)     parts.push(`Zinli: ${money(zinli)}$ c/u`)
 
     for (const s of activeSpecials) {
-      const bs = toBs(s.priceNum)
       parts.push('')
+      // Precio 0: la pc es gratis, solo se cobran los envíos
+      if (s.priceNum === 0) {
+        parts.push(`${s.label.trim() || 'Precio especial'}: solo paga envíos`)
+        continue
+      }
+      const bs = toBs(s.priceNum)
       parts.push(`${s.label.trim() || 'Precio especial'} (${s.qtyNum} ${s.qtyNum === 1 ? 'pc' : 'pcs'})`)
       if (bs !== null) parts.push(`Pago movil: ${money(bs)} $ c/u`)
       parts.push(`Zinli: ${money(s.priceNum)}$ c/u`)
